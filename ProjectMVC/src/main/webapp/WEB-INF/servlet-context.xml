@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<mvc:annotation-driven></mvc:annotation-driven>
+	<mvc:default-servlet-handler/>
+	
+	<!-- <mvc:resources mapping="/uploaded/**" location="/uploaded/"/> -->
+	<mvc:resources mapping="/css/**" location="/static/css/"/>
+	
+	<context:component-scan base-package="fr.cantine"></context:component-scan>
+                                                                                         
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+
+	<bean id="plat1" class="fr.cantine.beans.Plat">
+		<property name="id" value="1"></property>
+		<property name="nom" value="myPlat1_Entree"></property>
+		<property name="prix" value="1.1f"></property>
+		<property name="typePlat">
+			<value type="fr.cantine.beans.TypePlat">ENTREE</value>
+		</property>
+	</bean>
+
+
+	<bean id="plat2" class="fr.cantine.beans.Plat">
+		<property name="id" value="2"></property>
+		<property name="nom" value="myPlat2_VraiPlat"></property>
+		<property name="prix" value="10.2f"></property>
+		<property name="typePlat">
+			<value type="fr.cantine.beans.TypePlat">PLAT</value>
+		</property>
+	</bean>
+
+	<bean id="plat3" class="fr.cantine.beans.Plat">
+		<property name="id" value="3"></property>
+		<property name="nom" value="myPlat3_Accompagnement"></property>
+		<property name="prix" value="3.3f"></property>
+		<property name="typePlat">
+			<value type="fr.cantine.beans.TypePlat">ACCOMPAGNEMENT</value>
+		</property>
+	</bean>
+
+	
+	
+<!-- 
+	<bean id="fakeDao" class="fr.cantine.dao.FakePlatDao" init-method="init">
+		<property name="tousLesPlatsDisponibles">
+			<map>
+				<entry key="1" value-ref="plat1"></entry>
+				<entry key="2" value-ref="plat2"></entry>
+				<entry key="3" value-ref="plat3"></entry>
+			
+				<entry key="4">
+					<bean id="plat4" class="fr.cantine.beans.Plat">
+						<property name="id" value="4"></property>
+						<property name="nom" value="myPlat4_Dessert"></property>
+						<property name="prix" value="4.4f"></property>
+						<property name="typePlat">
+							<value type="fr.cantine.beans.TypePlat">DESSERT</value>
+						</property>
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean> -->
+	
+	
+<bean id="hibernateDao" class="fr.cantine.dao.PlatDao"></bean>	
+<!-- ************************************************************************************************************************************** -->
+<!--                                                     PERSISTENCE                                                                        -->
+<!-- ************************************************************************************************************************************** -->
+
+<bean id="dataSourceMySQL" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+	<property name="username" value="root"></property>
+	<property name="password" value=""></property>
+	<property name="url" value="jdbc:mysql://localhost:3306/restaurant"></property>
+</bean>
+
+
+<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+	<property name="dataSource" ref="dataSourceMySQL"></property>
+	<property name="packagesToScan">
+		<list>
+			<value>fr.cantine.beans</value>
+		</list>
+	</property>
+	
+	<property name="hibernateProperties">
+		<props>
+			<prop key="hibernate.show_sql">true</prop>
+			<prop key="hibernate.format_sql">true</prop>
+			<prop key="hibernate.hbm2ddl.auto">update</prop>
+			<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+		</props>
+	</property>
+</bean>
+
+<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+	<property name="sessionFactory" ref="sessionFactory"></property>
+	<property name="autodetectDataSource" value="true"></property>
+</bean>
+
+<tx:annotation-driven transaction-manager="transactionManager"/> 
+
+<!-- ************************************************************************************************************************************** -->
+
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	<property name="maxUploadSize" value="20971520"></property><!-- 20mo -->
+	<property name="maxInMemorySize" value="1048576"></property><!-- 1mo -->
+</bean>
+
+<!-- ************************************************************************************************************************************** -->
+<!--                                                Interceptors                                                                        -->
+<!-- ************************************************************************************************************************************** -->
+<mvc:interceptors>
+<bean id="loginInterceptor" class="fr.cantine.utils.LoginInterceptor">
+	<property name="ignoreList" >
+		<list>
+			<value>/login</value>
+			<value>/error</value>
+			<value>/css</value>	
+		</list>
+	</property>
+</bean>
+	
+</mvc:interceptors>
+
+<!-- ************************************************************************************************************************************** -->
+<!--                                                Interceptors                                                                        -->
+<!-- ************************************************************************************************************************************** -->
+
+<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+	<property name="basename" value="classpath:messages"></property>
+</bean>
+
+<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+	<property name="defaultLocale" value="en"></property>
+</bean>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ************************************************************************************************************************************** -->
+</beans>
+
+
+
